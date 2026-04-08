@@ -19,7 +19,10 @@ export const useGameSupabase = () => {
   const [error, setError] = useState(null);
   const [localPlayerId] = useState(() => {
     const saved = localStorage.getItem('color_memory_player_id');
-    if (saved) return saved;
+    // Validate if it's a valid UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (saved && uuidRegex.test(saved)) return saved;
+    
     const newId = crypto.randomUUID();
     localStorage.setItem('color_memory_player_id', newId);
     return newId;
@@ -132,6 +135,7 @@ export const useGameSupabase = () => {
   }, [localPlayerId]);
 
   const joinRoom = useCallback(async (playerName, roomCode) => {
+    // Correctly query by 'code' column, which is a string
     const { data: roomData, error: roomError } = await supabase
       .from('rooms')
       .select('*')
