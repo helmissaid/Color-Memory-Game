@@ -13,6 +13,11 @@ import RoundResultScreen from './screens/RoundResultScreen';
 import FinalResultScreen from './screens/FinalResultScreen';
 import { calculateScore } from './utils/scoring';
 
+/**
+ * App - Main Application Component
+ * Handles routing between different game screens based on Supabase room status.
+ * Completely free of Socket.io logic.
+ */
 export default function App() {
   const {
     room,
@@ -26,7 +31,7 @@ export default function App() {
     resetGame
   } = useGameSupabase();
 
-  // Error Toast
+  // Error Toast for displaying database or logic errors
   const renderError = () => {
     if (!error) return null;
     return (
@@ -41,6 +46,7 @@ export default function App() {
     );
   };
 
+  // If no room is active, show the Home Screen
   if (!room) {
     return (
       <div className="min-h-screen bg-[#050505]">
@@ -50,6 +56,7 @@ export default function App() {
     );
   }
 
+  // Render the appropriate screen based on room status
   const renderScreen = () => {
     switch (room.status) {
       case 'lobby':
@@ -67,7 +74,7 @@ export default function App() {
             color={room.target_color}
             roundNumber={room.round}
             totalRounds={room.total_rounds}
-            onTimeUp={() => {}} // Timeouts should ideally be server-side or host-driven
+            onTimeUp={() => {}} // Timeouts are handled by host or server-side logic
           />
         );
       case 'guess':
@@ -110,14 +117,18 @@ export default function App() {
         return (
           <FinalResultScreen
             players={players}
-            answers={[]} // In a real app, you'd fetch round history
+            answers={[]} // History can be fetched from database if needed
             allTimeLeaderboard={[]} 
             currentPlayerId={currentPlayer?.player_id}
             onPlayAgain={resetGame}
           />
         );
       default:
-        return <div className="text-white">Unknown State: {room.status}</div>;
+        return (
+          <div className="min-h-screen flex items-center justify-center text-white font-mono">
+            Unknown State: {room.status}
+          </div>
+        );
     }
   };
 
@@ -128,5 +139,3 @@ export default function App() {
     </div>
   );
 }
-
-

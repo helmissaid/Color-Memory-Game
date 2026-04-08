@@ -71,7 +71,7 @@ export const useGameSupabase = () => {
         { 
           code: roomCode, 
           status: 'lobby', 
-          host_id: playerId,
+          host_player_id: playerId,
           round: 0,
           total_rounds: 5
         }
@@ -148,7 +148,7 @@ export const useGameSupabase = () => {
   }, [playerId]);
 
   const startGame = useCallback(async () => {
-    if (!room || room.host_id !== playerId) return;
+    if (!room || room.host_player_id !== playerId) return;
 
     const targetColor = {
       h: Math.floor(Math.random() * 360),
@@ -187,7 +187,7 @@ export const useGameSupabase = () => {
 
     const allSubmitted = allPlayers.every(p => p.current_guess !== null);
     
-    if (allSubmitted && room.host_id === playerId) {
+    if (allSubmitted && room.host_player_id === playerId) {
       await supabase
         .from('rooms')
         .update({ status: 'result' })
