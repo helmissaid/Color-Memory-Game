@@ -4,27 +4,27 @@
  */
 
 import React from 'react';
-import { useGameSocket } from './hooks/useGameSocket';
+import { useGameSupabase } from './hooks/useGameSupabase';
 import HomeScreen from './screens/HomeScreen';
 import LobbyScreen from './screens/LobbyScreen';
 import MemorizeScreen from './screens/MemorizeScreen';
 import GuessScreen from './screens/GuessScreen';
 import RoundResultScreen from './screens/RoundResultScreen';
 import FinalResultScreen from './screens/FinalResultScreen';
+import { calculateScore } from './utils/scoring';
 
 export default function App() {
   const {
     room,
     players,
     currentPlayer,
-    highScores,
     error,
     createRoom,
     joinRoom,
     startGame,
     submitGuess,
     resetGame
-  } = useGameSocket();
+  } = useGameSupabase();
 
   // Error Toast
   const renderError = () => {
@@ -43,10 +43,10 @@ export default function App() {
 
   if (!room) {
     return (
-      <>
+      <div className="min-h-screen bg-[#050505]">
         {renderError()}
         <HomeScreen onCreateRoom={createRoom} onJoinRoom={joinRoom} />
-      </>
+      </div>
     );
   }
 
@@ -67,7 +67,7 @@ export default function App() {
             color={room.target_color}
             roundNumber={room.round}
             totalRounds={room.total_rounds}
-            onTimeUp={() => {}} // Handled by server timeout
+            onTimeUp={() => {}} // Timeouts should ideally be server-side or host-driven
           />
         );
       case 'guess':
@@ -76,10 +76,16 @@ export default function App() {
             roundNumber={room.round}
             totalRounds={room.total_rounds}
             players={players}
-            currentPlayerId={currentPlayer?.id}
-            submittedIds={room.submitted_ids}
-            onSubmit={(h, s, b) => submitGuess(h, s, b)}
-            hasSubmitted={room.submitted_ids.includes(currentPlayer?.id)}
+            currentPlayerId={currentPlayer?.player_id}
+            submittedIds={players.filter(p => p.current_guess).map(p => p.player_id)}
+            onSubmit={(h, s, b) => {
+              const score = calculateScore(
+                room.target_color.h, room.target_color.s, room.target_color.b,
+                h, s, b
+              );
+              submitGuess(h, s, b, score);
+            }}
+            hasSubmitted={!!currentPlayer?.current_guess}
           />
         );
       case 'result':
@@ -89,29 +95,29 @@ export default function App() {
             totalRounds={room.total_rounds}
             targetColor={room.target_color}
             results={players.map(p => ({
-              playerId: p.id,
+              playerId: p.player_id,
               playerName: p.name,
               h: p.current_guess?.h || 0,
               s: p.current_guess?.s || 0,
               b: p.current_guess?.b || 0,
               roundScore: p.round_score || 0
             }))}
-            currentPlayerId={currentPlayer?.id}
-            onNext={() => {}} // Handled by server timeout
+            currentPlayerId={currentPlayer?.player_id}
+            onNext={() => {}} 
           />
         );
       case 'gameover':
         return (
           <FinalResultScreen
             players={players}
-            answers={room.answers || []}
-            allTimeLeaderboard={highScores}
-            currentPlayerId={currentPlayer?.id}
+            answers={[]} // In a real app, you'd fetch round history
+            allTimeLeaderboard={[]} 
+            currentPlayerId={currentPlayer?.player_id}
             onPlayAgain={resetGame}
           />
         );
       default:
-        return <div className="text-white">Unknown State</div>;
+        return <div className="text-white">Unknown State: {room.status}</div>;
     }
   };
 
@@ -122,4 +128,5 @@ export default function App() {
     </div>
   );
 }
+
 
