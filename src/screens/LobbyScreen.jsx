@@ -13,7 +13,7 @@ import PlayerList from '../components/PlayerList';
 const LobbyScreen = ({ room, players = [], currentPlayer, onStartGame }) => {
   const [copied, setCopied] = useState(false);
 
-  const isHost = currentPlayer?.player_id === room?.host_player_id;
+  const isHost = currentPlayer?.id === room?.host_player_id;
   const canStart = players.length >= 2;
 
   const handleCopyLink = () => {
@@ -57,7 +57,7 @@ const LobbyScreen = ({ room, players = [], currentPlayer, onStartGame }) => {
         {/* Player List Component */}
         <PlayerList 
           players={players} 
-          currentPlayerId={currentPlayer?.player_id} 
+          currentPlayerId={currentPlayer?.id} 
           showScores={false}
         />
 

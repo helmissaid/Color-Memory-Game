@@ -1,15 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
+const TOTAL_ROUNDS = 5;
+
+// Deterministic color generation based on seed and round
+const getTargetColor = (seed, round) => {
+  const h = (seed * 137 + round * 97) % 360;
+  const s = 70 + ((seed * 31 + round * 17) % 30); // 70-100
+  const b = 60 + ((seed * 19 + round * 13) % 40); // 60-100
+  return { h, s, b };
+};
+
 export const useGameSupabase = () => {
   const [room, setRoom] = useState(null);
   const [players, setPlayers] = useState([]);
+  const [answers, setAnswers] = useState([]);
   const [currentPlayer, setCurrentPlayer] = useState(null);
   const [error, setError] = useState(null);
-  const [playerId] = useState(() => {
+  const [localPlayerId] = useState(() => {
     const saved = localStorage.getItem('color_memory_player_id');
     if (saved) return saved;
-    const newId = Math.random().toString(36).substring(2, 15);
+    const newId = crypto.randomUUID();
     localStorage.setItem('color_memory_player_id', newId);
     return newId;
   });
@@ -41,8 +52,7 @@ export const useGameSupabase = () => {
           filter: `room_id=eq.${room.id}`,
         },
         async () => {
-          // Fetch all players for this room when any player changes
-          const { data, error: fetchError } = await supabase
+          const { data } = await supabase
             .from('players')
             .select('*')
             .eq('room_id', room.id)
@@ -50,9 +60,25 @@ export const useGameSupabase = () => {
 
           if (data) {
             setPlayers(data);
-            const me = data.find((p) => p.player_id === playerId);
+            const me = data.find((p) => p.id === localPlayerId);
             if (me) setCurrentPlayer(me);
           }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'answers',
+          filter: `room_id=eq.${room.id}`,
+        },
+        async () => {
+          const { data } = await supabase
+            .from('answers')
+            .select('*')
+            .eq('room_id', room.id);
+          if (data) setAnswers(data);
         }
       )
       .subscribe();
@@ -60,20 +86,21 @@ export const useGameSupabase = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [room?.id, playerId]);
+  }, [room?.id, localPlayerId]);
 
   const createRoom = useCallback(async (playerName) => {
     const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const seed = Math.floor(Math.random() * 1000000);
     
     const { data: roomData, error: roomError } = await supabase
       .from('rooms')
       .insert([
         { 
           code: roomCode, 
-          status: 'lobby', 
-          host_player_id: playerId,
+          status: 'waiting', 
+          host_player_id: localPlayerId,
           current_round: 0,
-          total_rounds: 5
+          seed: seed
         }
       ])
       .select()
@@ -88,10 +115,11 @@ export const useGameSupabase = () => {
       .from('players')
       .insert([
         {
+          id: localPlayerId,
           room_id: roomData.id,
-          player_id: playerId,
           name: playerName,
-          total_score: 0
+          total_score: 0,
+          is_ready: true
         }
       ]);
 
@@ -101,7 +129,7 @@ export const useGameSupabase = () => {
     }
 
     setRoom(roomData);
-  }, [playerId]);
+  }, [localPlayerId]);
 
   const joinRoom = useCallback(async (playerName, roomCode) => {
     const { data: roomData, error: roomError } = await supabase
@@ -115,7 +143,7 @@ export const useGameSupabase = () => {
       return;
     }
 
-    if (roomData.status !== 'lobby') {
+    if (roomData.status !== 'waiting') {
       setError('Game already in progress');
       return;
     }
@@ -124,10 +152,11 @@ export const useGameSupabase = () => {
       .from('players')
       .insert([
         {
+          id: localPlayerId,
           room_id: roomData.id,
-          player_id: playerId,
           name: playerName,
-          total_score: 0
+          total_score: 0,
+          is_ready: true
         }
       ]);
 
@@ -137,67 +166,96 @@ export const useGameSupabase = () => {
     }
 
     setRoom(roomData);
-    
-    // Initial fetch of players
-    const { data: playersData } = await supabase
-      .from('players')
-      .select('*')
-      .eq('room_id', roomData.id);
-    
-    if (playersData) setPlayers(playersData);
-  }, [playerId]);
+  }, [localPlayerId]);
 
   const startGame = useCallback(async () => {
-    if (!room || room.host_player_id !== playerId) return;
-
-    const targetColor = {
-      h: Math.floor(Math.random() * 360),
-      s: Math.floor(Math.random() * 100),
-      b: Math.floor(Math.random() * 100)
-    };
+    if (!room || room.host_player_id !== localPlayerId) return;
 
     await supabase
       .from('rooms')
       .update({ 
-        status: 'memorize', 
-        current_round: 1,
-        target_color: targetColor
+        status: 'playing', 
+        current_round: 1
       })
       .eq('id', room.id);
-  }, [room, playerId]);
+  }, [room, localPlayerId]);
 
   const submitGuess = useCallback(async (h, s, b, score) => {
     if (!room || !currentPlayer) return;
 
-    // Update player's guess and score
+    const target = getTargetColor(room.seed, room.current_round);
+
+    // 1. Insert Answer
+    const { error: ansError } = await supabase
+      .from('answers')
+      .insert([{
+        player_id: localPlayerId,
+        room_id: room.id,
+        round_number: room.current_round,
+        target_h: target.h,
+        target_s: target.s,
+        target_b: target.b,
+        guess_h: h,
+        guess_s: s,
+        guess_b: b,
+        round_score: score
+      }]);
+
+    if (ansError) {
+      setError(ansError.message);
+      return;
+    }
+
+    // 2. Update player's total score
     await supabase
       .from('players')
       .update({
-        current_guess: { h, s, b },
-        round_score: score,
         total_score: (currentPlayer.total_score || 0) + score
       })
-      .eq('id', currentPlayer.id);
+      .eq('id', localPlayerId);
 
-    // Check if all players submitted
-    const { data: allPlayers } = await supabase
-      .from('players')
-      .select('current_guess')
-      .eq('room_id', room.id);
+    // 3. Check if all players submitted for this round
+    const { data: currentRoundAnswers } = await supabase
+      .from('answers')
+      .select('player_id')
+      .eq('room_id', room.id)
+      .eq('round_number', room.current_round);
 
-    const allSubmitted = allPlayers.every(p => p.current_guess !== null);
-    
-    if (allSubmitted && room.host_player_id === playerId) {
+    if (currentRoundAnswers?.length === players.length && room.host_player_id === localPlayerId) {
+      // Host triggers next state logic (this is a simplified client-side trigger)
+      // In a real app, you might use a 'round_status' or similar
+    }
+  }, [room, currentPlayer, players.length, localPlayerId]);
+
+  const nextRound = useCallback(async () => {
+    if (!room || room.host_player_id !== localPlayerId) return;
+
+    if (room.current_round < TOTAL_ROUNDS) {
       await supabase
         .from('rooms')
-        .update({ status: 'result' })
+        .update({ current_round: room.current_round + 1 })
         .eq('id', room.id);
+    } else {
+      await supabase
+        .from('rooms')
+        .update({ status: 'finished' })
+        .eq('id', room.id);
+      
+      // Submit to leaderboard
+      players.forEach(async (p) => {
+        await supabase.from('leaderboard').insert([{
+          player_name: p.name,
+          total_score: p.total_score,
+          room_id: room.id
+        }]);
+      });
     }
-  }, [room, currentPlayer, playerId]);
+  }, [room, localPlayerId, players]);
 
   const resetGame = () => {
     setRoom(null);
     setPlayers([]);
+    setAnswers([]);
     setCurrentPlayer(null);
     window.location.href = '/';
   };
@@ -205,12 +263,16 @@ export const useGameSupabase = () => {
   return {
     room,
     players,
+    answers,
     currentPlayer,
     error,
     createRoom,
     joinRoom,
     startGame,
     submitGuess,
-    resetGame
+    nextRound,
+    resetGame,
+    TOTAL_ROUNDS,
+    getTargetColor
   };
 };

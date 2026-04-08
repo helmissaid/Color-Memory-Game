@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGameSupabase } from './hooks/useGameSupabase';
 import HomeScreen from './screens/HomeScreen';
 import LobbyScreen from './screens/LobbyScreen';
@@ -15,23 +15,44 @@ import { calculateScore } from './utils/scoring';
 
 /**
  * App - Main Application Component
- * Handles routing between different game screens based on Supabase room status.
- * Completely free of Socket.io logic.
+ * Strictly follows the provided database schema.
+ * No Socket.io.
  */
 export default function App() {
   const {
     room,
     players,
+    answers,
     currentPlayer,
     error,
     createRoom,
     joinRoom,
     startGame,
     submitGuess,
-    resetGame
+    nextRound,
+    resetGame,
+    TOTAL_ROUNDS,
+    getTargetColor
   } = useGameSupabase();
 
-  // Error Toast for displaying database or logic errors
+  const [phase, setPhase] = useState('memorize'); // 'memorize' | 'guess' | 'result'
+
+  // Sync phase based on room status and answers
+  useEffect(() => {
+    if (!room || room.status !== 'playing') return;
+
+    const currentRoundAnswers = answers.filter(a => a.round_number === room.current_round);
+    const allSubmitted = currentRoundAnswers.length === players.length && players.length > 0;
+
+    if (allSubmitted) {
+      setPhase('result');
+    } else {
+      // If we just entered a new round, start with memorize
+      setPhase('memorize');
+    }
+  }, [room?.current_round, room?.status, answers, players.length]);
+
+  // Error Toast
   const renderError = () => {
     if (!error) return null;
     return (
@@ -46,7 +67,6 @@ export default function App() {
     );
   };
 
-  // If no room is active, show the Home Screen
   if (!room) {
     return (
       <div className="min-h-screen bg-[#050505]">
@@ -56,10 +76,13 @@ export default function App() {
     );
   }
 
-  // Render the appropriate screen based on room status
   const renderScreen = () => {
+    const targetColor = room.seed ? getTargetColor(room.seed, room.current_round) : { h: 0, s: 0, b: 0 };
+    const currentRoundAnswers = answers.filter(a => a.round_number === room.current_round);
+    const hasSubmitted = currentRoundAnswers.some(a => a.player_id === currentPlayer?.id);
+
     switch (room.status) {
-      case 'lobby':
+      case 'waiting':
         return (
           <LobbyScreen
             room={room}
@@ -68,67 +91,71 @@ export default function App() {
             onStartGame={startGame}
           />
         );
-      case 'memorize':
-        return (
-          <MemorizeScreen
-            color={room.target_color}
-            roundNumber={room.current_round}
-            totalRounds={room.total_rounds}
-            onTimeUp={() => {}} // Timeouts are handled by host or server-side logic
-          />
-        );
-      case 'guess':
-        return (
-          <GuessScreen
-            roundNumber={room.current_round}
-            totalRounds={room.total_rounds}
-            players={players}
-            currentPlayerId={currentPlayer?.player_id}
-            submittedIds={players.filter(p => p.current_guess).map(p => p.player_id)}
-            onSubmit={(h, s, b) => {
-              const score = calculateScore(
-                room.target_color.h, room.target_color.s, room.target_color.b,
-                h, s, b
-              );
-              submitGuess(h, s, b, score);
-            }}
-            hasSubmitted={!!currentPlayer?.current_guess}
-          />
-        );
-      case 'result':
-        return (
-          <RoundResultScreen
-            roundNumber={room.current_round}
-            totalRounds={room.total_rounds}
-            targetColor={room.target_color}
-            results={players.map(p => ({
-              playerId: p.player_id,
-              playerName: p.name,
-              h: p.current_guess?.h || 0,
-              s: p.current_guess?.s || 0,
-              b: p.current_guess?.b || 0,
-              roundScore: p.round_score || 0
-            }))}
-            currentPlayerId={currentPlayer?.player_id}
-            onNext={() => {}} 
-          />
-        );
-      case 'gameover':
+      case 'playing':
+        if (phase === 'memorize') {
+          return (
+            <MemorizeScreen
+              color={targetColor}
+              roundNumber={room.current_round}
+              totalRounds={TOTAL_ROUNDS}
+              onTimeUp={() => setPhase('guess')}
+            />
+          );
+        }
+        if (phase === 'guess') {
+          return (
+            <GuessScreen
+              roundNumber={room.current_round}
+              totalRounds={TOTAL_ROUNDS}
+              players={players}
+              currentPlayerId={currentPlayer?.id}
+              submittedIds={currentRoundAnswers.map(a => a.player_id)}
+              onSubmit={(h, s, b) => {
+                const score = calculateScore(
+                  targetColor.h, targetColor.s, targetColor.b,
+                  h, s, b
+                );
+                submitGuess(h, s, b, score);
+              }}
+              hasSubmitted={hasSubmitted}
+            />
+          );
+        }
+        if (phase === 'result') {
+          return (
+            <RoundResultScreen
+              roundNumber={room.current_round}
+              totalRounds={TOTAL_ROUNDS}
+              targetColor={targetColor}
+              results={currentRoundAnswers.map(a => {
+                const p = players.find(player => player.id === a.player_id);
+                return {
+                  playerId: a.player_id,
+                  playerName: p?.name || 'Unknown',
+                  h: a.guess_h,
+                  s: a.guess_s,
+                  b: a.guess_b,
+                  roundScore: a.round_score
+                };
+              })}
+              currentPlayerId={currentPlayer?.id}
+              onNext={nextRound} 
+            />
+          );
+        }
+        return null;
+      case 'finished':
         return (
           <FinalResultScreen
             players={players}
-            answers={[]} // History can be fetched from database if needed
-            allTimeLeaderboard={[]} 
-            currentPlayerId={currentPlayer?.player_id}
+            answers={answers}
+            allTimeLeaderboard={[]} // Can be fetched separately if needed
+            currentPlayerId={currentPlayer?.id}
             onPlayAgain={resetGame}
           />
         );
       default:
-        return (
-          <div className="min-h-screen flex items-center justify-center text-white font-mono">
-            Unknown State: {room.status}
-          </div>
-        );
+        return <div className="text-white">Unknown State: {room.status}</div>;
     }
   };
 
