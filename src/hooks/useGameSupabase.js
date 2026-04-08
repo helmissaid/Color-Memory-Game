@@ -72,7 +72,7 @@ export const useGameSupabase = () => {
           code: roomCode, 
           status: 'lobby', 
           host_player_id: playerId,
-          round: 0,
+          current_round: 0,
           total_rounds: 5
         }
       ])
@@ -160,7 +160,7 @@ export const useGameSupabase = () => {
       .from('rooms')
       .update({ 
         status: 'memorize', 
-        round: 1,
+        current_round: 1,
         target_color: targetColor
       })
       .eq('id', room.id);

@@ -72,7 +72,7 @@ export default function App() {
         return (
           <MemorizeScreen
             color={room.target_color}
-            roundNumber={room.round}
+            roundNumber={room.current_round}
             totalRounds={room.total_rounds}
             onTimeUp={() => {}} // Timeouts are handled by host or server-side logic
           />
@@ -80,7 +80,7 @@ export default function App() {
       case 'guess':
         return (
           <GuessScreen
-            roundNumber={room.round}
+            roundNumber={room.current_round}
             totalRounds={room.total_rounds}
             players={players}
             currentPlayerId={currentPlayer?.player_id}
@@ -98,7 +98,7 @@ export default function App() {
       case 'result':
         return (
           <RoundResultScreen
-            roundNumber={room.round}
+            roundNumber={room.current_round}
             totalRounds={room.total_rounds}
             targetColor={room.target_color}
             results={players.map(p => ({
