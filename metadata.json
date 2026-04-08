@@ -1,0 +1,5 @@
+{
+  "name": "Color Memory Multiplayer",
+  "description": "A real-time multiplayer color memory game where players compete to match colors from memory. Built with React, Tailwind CSS, and Firebase.",
+  "requestFramePermissions": []
+}
