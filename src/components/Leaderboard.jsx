@@ -25,15 +25,15 @@ const Leaderboard = ({ players = [], allTime = [], currentPlayerId }) => {
   };
 
   return (
-    <div className="w-full max-w-2xl bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-xl">
+    <div className="w-full max-w-2xl bg-gray-900/60 rounded-[2rem] border border-white/10 overflow-hidden backdrop-blur-xl shadow-2xl">
       {/* Tabs */}
-      <div className="flex p-2 bg-gray-50 gap-2">
+      <div className="flex p-2 bg-black/20 gap-2">
         <button
           onClick={() => setActiveTab('this-game')}
           className={`flex-1 py-3 px-4 rounded-2xl text-sm font-bold transition-all duration-300 ${
             activeTab === 'this-game'
-              ? 'bg-white text-indigo-600 shadow-sm'
-              : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100/50'
+              ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+              : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
           }`}
         >
           This Game
@@ -42,8 +42,8 @@ const Leaderboard = ({ players = [], allTime = [], currentPlayerId }) => {
           onClick={() => setActiveTab('all-time')}
           className={`flex-1 py-3 px-4 rounded-2xl text-sm font-bold transition-all duration-300 ${
             activeTab === 'all-time'
-              ? 'bg-white text-indigo-600 shadow-sm'
-              : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100/50'
+              ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+              : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
           }`}
         >
           All Time
@@ -66,22 +66,22 @@ const Leaderboard = ({ players = [], allTime = [], currentPlayerId }) => {
                       {getRankIcon(index)}
                     </span>
                     <div className="flex flex-col">
-                      <span className={`text-base font-bold ${player.id === currentPlayerId ? 'text-indigo-600' : 'text-gray-900'}`}>
+                      <span className={`text-base font-bold ${player.id === currentPlayerId ? 'text-indigo-400' : 'text-white'}`}>
                         {player.name}
-                        {player.id === currentPlayerId && <span className="ml-2 text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full uppercase tracking-tighter">You</span>}
+                        {player.id === currentPlayerId && <span className="ml-2 text-[10px] bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full uppercase tracking-tighter">You</span>}
                       </span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="text-lg font-mono font-black text-indigo-600">
+                    <span className="text-lg font-mono font-black text-indigo-300">
                       {(player.total_score || 0).toFixed(2)}
                     </span>
-                    <span className="text-[10px] text-gray-400 ml-1 font-bold uppercase">/ 50</span>
+                    <span className="text-[10px] text-gray-600 ml-1 font-bold uppercase">/ 50</span>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="py-12 text-center text-gray-400 italic">No data available</div>
+              <div className="py-12 text-center text-gray-600 italic">No data available</div>
             )
           ) : (
             allTime.length > 0 ? (
@@ -92,27 +92,27 @@ const Leaderboard = ({ players = [], allTime = [], currentPlayerId }) => {
                   style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'both' }}
                 >
                   <div className="flex items-center gap-4">
-                    <span className="w-8 text-sm font-mono font-bold text-gray-300">
+                    <span className="w-8 text-sm font-mono font-bold text-gray-600">
                       #{index + 1}
                     </span>
                     <div className="flex flex-col">
-                      <span className="text-sm font-bold text-gray-900">
+                      <span className="text-sm font-bold text-gray-200">
                         {entry.player_name}
                       </span>
-                      <span className="text-[10px] text-gray-400 font-medium">
+                      <span className="text-[10px] text-gray-600 font-medium">
                         {formatDate(entry.played_at)}
                       </span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="text-base font-mono font-black text-indigo-600">
+                    <span className="text-base font-mono font-black text-indigo-400">
                       {(entry.total_score || 0).toFixed(2)}
                     </span>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="py-12 text-center text-gray-400 italic">Loading high scores...</div>
+              <div className="py-12 text-center text-gray-600 italic">Loading high scores...</div>
             )
           )}
         </div>
@@ -126,7 +126,7 @@ const Leaderboard = ({ players = [], allTime = [], currentPlayerId }) => {
           background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(0, 0, 0, 0.05);
+          background: rgba(255, 255, 255, 0.1);
           border-radius: 10px;
         }
       `}</style>

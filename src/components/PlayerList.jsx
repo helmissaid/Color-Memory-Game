@@ -11,18 +11,18 @@ import React from 'react';
  */
 const PlayerList = ({ players = [], currentPlayerId, showScores = false, submittedIds = [] }) => {
   return (
-    <div className="w-full max-w-md bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+    <div className="w-full max-w-md bg-gray-900/40 rounded-3xl border border-white/5 overflow-hidden backdrop-blur-md">
       {/* Header */}
-      <div className="px-6 py-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
-        <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">
-          Players <span className="text-indigo-600 ml-1">({players.length})</span>
+      <div className="px-6 py-4 bg-white/5 border-b border-white/5 flex justify-between items-center">
+        <h3 className="text-xs font-black text-gray-500 uppercase tracking-[0.2em]">
+          Players <span className="text-indigo-400 ml-1">({players.length})</span>
         </h3>
       </div>
 
       {/* List */}
-      <div className="divide-y divide-gray-50">
+      <div className="divide-y divide-white/5">
         {players.length === 0 ? (
-          <div className="px-6 py-8 text-center text-gray-300 italic text-sm">
+          <div className="px-6 py-8 text-center text-gray-600 italic text-sm">
             Waiting for players to join...
           </div>
         ) : (
@@ -34,18 +34,18 @@ const PlayerList = ({ players = [], currentPlayerId, showScores = false, submitt
               <div
                 key={player.id}
                 className={`flex items-center justify-between px-6 py-4 transition-all duration-300 ${
-                  isMe ? 'bg-indigo-50' : 'hover:bg-gray-50/50'
+                  isMe ? 'bg-indigo-500/10' : 'hover:bg-white/[0.02]'
                 }`}
               >
                 <div className="flex items-center gap-4">
                   {/* Status Indicator */}
                   <div className="relative">
-                    <div className={`w-2.5 h-2.5 rounded-full ${player.is_ready ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.2)]' : 'bg-gray-200'}`} />
+                    <div className={`w-2.5 h-2.5 rounded-full ${player.is_ready ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-gray-700'}`} />
                   </div>
 
                   {/* Name */}
                   <div className="flex items-center gap-2">
-                    <span className={`text-sm tracking-wide ${isMe ? 'text-gray-900 font-bold' : 'text-gray-600 font-medium'}`}>
+                    <span className={`text-sm tracking-wide ${isMe ? 'text-white font-bold' : 'text-gray-300 font-medium'}`}>
                       {player.name}
                     </span>
                     {isMe && (
@@ -64,9 +64,9 @@ const PlayerList = ({ players = [], currentPlayerId, showScores = false, submitt
                         <span className="text-green-500 text-lg font-bold animate-in zoom-in duration-300">✓</span>
                       ) : (
                         <div className="flex gap-1">
-                          <span className="w-1 h-1 bg-gray-300 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                          <span className="w-1 h-1 bg-gray-300 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                          <span className="w-1 h-1 bg-gray-300 rounded-full animate-bounce" />
+                          <span className="w-1 h-1 bg-gray-600 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                          <span className="w-1 h-1 bg-gray-600 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                          <span className="w-1 h-1 bg-gray-600 rounded-full animate-bounce" />
                         </div>
                       )}
                     </div>
@@ -75,7 +75,7 @@ const PlayerList = ({ players = [], currentPlayerId, showScores = false, submitt
                   {/* Score */}
                   {showScores && (
                     <div className="text-right min-w-[40px]">
-                      <span className="text-sm font-mono font-black text-indigo-600">
+                      <span className="text-sm font-mono font-black text-indigo-300">
                         {player.total_score || 0}
                       </span>
                     </div>

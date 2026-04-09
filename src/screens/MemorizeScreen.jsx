@@ -25,15 +25,15 @@ const MemorizeScreen = ({ color, roundNumber, totalRounds, onTimeUp }) => {
   const isEnding = timeLeft <= 2;
 
   return (
-    <div className="relative h-screen w-full bg-white overflow-hidden flex flex-col font-sans">
+    <div className="relative h-screen w-full bg-[#050505] overflow-hidden flex flex-col font-sans">
       {/* Header Overlay */}
       <div className="absolute top-0 left-0 w-full z-20 p-6 sm:p-10 flex justify-between items-start pointer-events-none">
         <div className="space-y-1 animate-in slide-in-from-top duration-700">
-          <p className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-[0.3em]">
+          <p className="text-[10px] sm:text-xs font-black text-white/40 uppercase tracking-[0.3em]">
             Round {roundNumber} of {totalRounds}
           </p>
-          <h2 className="text-2xl sm:text-4xl font-black text-gray-900 uppercase italic tracking-tighter leading-none">
-            Memorize <span className="text-indigo-600">This Color</span>
+          <h2 className="text-2xl sm:text-4xl font-black text-white uppercase italic tracking-tighter leading-none">
+            Memorize <span className="text-indigo-500">This Color</span>
           </h2>
         </div>
         
@@ -45,10 +45,10 @@ const MemorizeScreen = ({ color, roundNumber, totalRounds, onTimeUp }) => {
       {/* Main Color Display Area */}
       <div className="flex-1 p-4 sm:p-10 pt-24 sm:pt-32 pb-20">
         <div 
-          className={`w-full h-full rounded-[2.5rem] sm:rounded-[4rem] overflow-hidden border-4 sm:border-8 transition-all duration-300 shadow-[0_20px_50px_rgba(0,0,0,0.1)] ${
+          className={`w-full h-full rounded-[2.5rem] sm:rounded-[4rem] overflow-hidden border-4 sm:border-8 transition-all duration-300 shadow-2xl ${
             isEnding 
               ? 'border-red-500/40 scale-[0.98] shadow-red-500/10 animate-pulse' 
-              : 'border-gray-50 scale-100'
+              : 'border-white/5 scale-100 shadow-black/50'
           }`}
         >
           <ColorSwatch h={color.h} s={color.s} b={color.b} size="full" className="h-full" />
@@ -57,7 +57,7 @@ const MemorizeScreen = ({ color, roundNumber, totalRounds, onTimeUp }) => {
 
       {/* Bottom Hint Overlay */}
       <div className="absolute bottom-8 left-0 w-full text-center z-20 pointer-events-none">
-        <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full border border-gray-100 shadow-sm">
+        <div className="inline-flex items-center gap-3 px-4 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/5">
           <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-ping" />
           <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.5em]">
             Don't look away

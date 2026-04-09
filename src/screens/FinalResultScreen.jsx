@@ -32,14 +32,14 @@ const FinalResultScreen = ({
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 flex flex-col items-center p-6 sm:p-10 font-sans overflow-y-auto">
+    <div className="min-h-screen bg-[#050505] text-white flex flex-col items-center p-6 sm:p-10 font-sans overflow-y-auto">
       
       {/* Header */}
       <div className="w-full max-w-2xl text-center space-y-4 mb-12 animate-in fade-in slide-in-from-top duration-1000">
-        <h1 className="text-5xl sm:text-7xl font-black tracking-tighter uppercase italic leading-none text-transparent bg-clip-text bg-gradient-to-b from-gray-900 to-indigo-600">
+        <h1 className="text-5xl sm:text-7xl font-black tracking-tighter uppercase italic leading-none text-transparent bg-clip-text bg-gradient-to-b from-white to-indigo-500">
           Game Over!
         </h1>
-        <p className="text-gray-400 text-[10px] sm:text-xs font-black uppercase tracking-[0.4em]">
+        <p className="text-gray-500 text-[10px] sm:text-xs font-black uppercase tracking-[0.4em]">
           The spectrum has been settled
         </p>
       </div>
@@ -56,10 +56,10 @@ const FinalResultScreen = ({
       {/* Score Breakdown Section */}
       <div className="w-full max-w-2xl space-y-6 mb-16">
         <div className="flex items-center justify-between px-2">
-          <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">
+          <h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">
             Score Breakdown
           </h3>
-          <span className="text-[9px] text-gray-300 font-bold uppercase tracking-tighter">Click a player to expand</span>
+          <span className="text-[9px] text-gray-700 font-bold uppercase tracking-tighter">Click a player to expand</span>
         </div>
 
         <div className="space-y-3">
@@ -71,7 +71,7 @@ const FinalResultScreen = ({
               <div 
                 key={player.id} 
                 className={`rounded-3xl border transition-all duration-500 overflow-hidden ${
-                  isExpanded ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-100 hover:bg-gray-50'
+                  isExpanded ? 'bg-white/5 border-white/10' : 'bg-white/[0.02] border-white/5 hover:bg-white/5'
                 }`}
               >
                 {/* Accordion Header */}
@@ -80,18 +80,18 @@ const FinalResultScreen = ({
                   className="w-full flex items-center justify-between p-5 text-left"
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`w-2 h-2 rounded-full ${player.id === currentPlayerId ? 'bg-indigo-500' : 'bg-gray-200'}`} />
-                    <span className={`font-bold ${player.id === currentPlayerId ? 'text-gray-900' : 'text-gray-400'}`}>
+                    <div className={`w-2 h-2 rounded-full ${player.id === currentPlayerId ? 'bg-indigo-500' : 'bg-gray-700'}`} />
+                    <span className={`font-bold ${player.id === currentPlayerId ? 'text-white' : 'text-gray-400'}`}>
                       {player.name}
                     </span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-sm font-mono font-black text-indigo-600">
+                    <span className="text-sm font-mono font-black text-indigo-400">
                       {(player.total_score || 0).toFixed(2)}
                     </span>
                     <svg 
                       xmlns="http://www.w3.org/2000/svg" 
-                      className={`h-4 w-4 text-gray-300 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} 
+                      className={`h-4 w-4 text-gray-600 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} 
                       fill="none" viewBox="0 0 24 24" stroke="currentColor"
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
@@ -104,13 +104,13 @@ const FinalResultScreen = ({
                   <div className="px-5 pb-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="grid grid-cols-5 gap-2">
                       {playerAnswers.map((ans) => (
-                        <div key={ans.round_number} className="space-y-3 p-3 bg-white rounded-2xl border border-gray-100 flex flex-col items-center shadow-sm">
-                          <span className="text-[8px] font-black text-gray-300 uppercase">R{ans.round_number}</span>
+                        <div key={ans.round_number} className="space-y-3 p-3 bg-black/20 rounded-2xl border border-white/5 flex flex-col items-center">
+                          <span className="text-[8px] font-black text-gray-600 uppercase">R{ans.round_number}</span>
                           <div className="flex flex-col gap-1">
                             <ColorSwatch h={ans.target_h} s={ans.target_s} b={ans.target_b} size="sm" className="scale-75" />
                             <ColorSwatch h={ans.guess_h} s={ans.guess_s} b={ans.guess_b} size="sm" className="scale-75" />
                           </div>
-                          <span className="text-[10px] font-mono font-black text-indigo-600">
+                          <span className="text-[10px] font-mono font-black text-indigo-300">
                             {ans.round_score.toFixed(1)}
                           </span>
                         </div>
@@ -134,7 +134,7 @@ const FinalResultScreen = ({
         </button>
         <button
           onClick={onPlayAgain}
-          className="w-full bg-gray-900 text-white hover:bg-gray-800 font-black py-5 rounded-3xl transition-all shadow-2xl uppercase tracking-widest text-sm active:scale-[0.98]"
+          className="w-full bg-white text-black hover:bg-gray-200 font-black py-5 rounded-3xl transition-all shadow-2xl uppercase tracking-widest text-sm active:scale-[0.98]"
         >
           Play Again
         </button>
@@ -142,8 +142,8 @@ const FinalResultScreen = ({
 
       {/* Decorative Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-[-1]">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/5 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/5 blur-[120px] rounded-full" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 blur-[120px] rounded-full" />
       </div>
     </div>
   );

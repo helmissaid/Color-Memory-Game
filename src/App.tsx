@@ -69,7 +69,7 @@ export default function App() {
 
   if (!room) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-[#050505]">
         {renderError()}
         <HomeScreen onCreateRoom={createRoom} onJoinRoom={joinRoom} />
       </div>
@@ -155,12 +155,12 @@ export default function App() {
           />
         );
       default:
-        return <div className="text-gray-900">Unknown State: {room.status}</div>;
+        return <div className="text-white">Unknown State: {room.status}</div>;
     }
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#050505]">
       {renderError()}
       {renderScreen()}
     </div>
