@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 
 const TOTAL_ROUNDS = 5;
@@ -17,6 +17,8 @@ export const useGameSupabase = () => {
   const [answers, setAnswers] = useState([]);
   const [currentPlayer, setCurrentPlayer] = useState(null);
   const [error, setError] = useState(null);
+  const isCreatingRoom = useRef(false);
+  const isJoiningRoom = useRef(false);
   const [localPlayerId] = useState(() => {
     const saved = localStorage.getItem('color_memory_player_id');
     // Validate if it's a valid UUID format
@@ -92,84 +94,103 @@ export const useGameSupabase = () => {
   }, [room?.id, localPlayerId]);
 
   const createRoom = useCallback(async (playerName) => {
+    if (isCreatingRoom.current) return;
+    isCreatingRoom.current = true;
+
     const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     const seed = Math.floor(Math.random() * 1000000);
     
-    const { data: roomData, error: roomError } = await supabase
-      .from('rooms')
-      .insert([
-        { 
-          code: roomCode, 
-          status: 'waiting', 
-          host_player_id: localPlayerId,
-          current_round: 0,
-          seed: seed
-        }
-      ])
-      .select()
-      .single();
+    try {
+      const { data: roomData, error: roomError } = await supabase
+        .from('rooms')
+        .insert([
+          { 
+            code: roomCode, 
+            status: 'waiting', 
+            host_player_id: localPlayerId,
+            current_round: 0,
+            seed: seed
+          }
+        ])
+        .select()
+        .single();
 
-    if (roomError) {
-      setError(roomError.message);
-      return;
-    }
+      if (roomError) {
+        setError(roomError.message);
+        isCreatingRoom.current = false;
+        return;
+      }
 
-    const { error: playerError } = await supabase
-      .from('players')
-      .insert([
-        {
+      const { error: playerError } = await supabase
+        .from('players')
+        .upsert({
           id: localPlayerId,
           room_id: roomData.id,
           name: playerName,
           total_score: 0,
           is_ready: true
-        }
-      ]);
+        });
 
-    if (playerError) {
-      setError(playerError.message);
-      return;
+      if (playerError) {
+        console.error('Player upsert error:', playerError);
+        setError(playerError.message);
+        isCreatingRoom.current = false;
+        return;
+      }
+
+      setRoom(roomData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create room');
+      isCreatingRoom.current = false;
     }
-
-    setRoom(roomData);
   }, [localPlayerId]);
 
   const joinRoom = useCallback(async (playerName, roomCode) => {
-    // Correctly query by 'code' column, which is a string
-    const { data: roomData, error: roomError } = await supabase
-      .from('rooms')
-      .select('*')
-      .eq('code', roomCode.toUpperCase())
-      .single();
+    if (isJoiningRoom.current) return;
+    isJoiningRoom.current = true;
 
-    if (roomError || !roomData) {
-      setError('Room not found');
-      return;
-    }
+    try {
+      // Correctly query by 'code' column, which is a string
+      const { data: roomData, error: roomError } = await supabase
+        .from('rooms')
+        .select('*')
+        .eq('code', roomCode.toUpperCase())
+        .single();
 
-    if (roomData.status !== 'waiting') {
-      setError('Game already in progress');
-      return;
-    }
+      if (roomError || !roomData) {
+        setError('Room not found');
+        isJoiningRoom.current = false;
+        return;
+      }
 
-    const { error: playerError } = await supabase
-      .from('players')
-      .insert([
-        {
+      if (roomData.status !== 'waiting') {
+        setError('Game already in progress');
+        isJoiningRoom.current = false;
+        return;
+      }
+
+      const { error: playerError } = await supabase
+        .from('players')
+        .upsert({
           id: localPlayerId,
           room_id: roomData.id,
           name: playerName,
           total_score: 0,
           is_ready: true
-        }
-      ]);
+        });
 
-    if (playerError) {
-      setError(playerError.message);
-      return;
+      if (playerError) {
+        console.error('Player upsert error:', playerError);
+        setError(playerError.message);
+        isJoiningRoom.current = false;
+        return;
+      }
+
+      setRoom(roomData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to join room');
+      isJoiningRoom.current = false;
     }
-
-    setRoom(roomData);
   }, [localPlayerId]);
 
   const startGame = useCallback(async () => {
