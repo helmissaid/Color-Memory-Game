@@ -14,7 +14,7 @@ const LobbyScreen = ({ room, players = [], currentPlayer, onStartGame }) => {
   const [copied, setCopied] = useState(false);
 
   const isHost = currentPlayer?.id === room?.host_player_id;
-  const canStart = players.length >= 2;
+  const canStart = players.length >= 1;
 
   const handleCopyLink = () => {
     const url = new URL(window.location.href);
@@ -72,9 +72,9 @@ const LobbyScreen = ({ room, players = [], currentPlayer, onStartGame }) => {
               >
                 Start Game
               </button>
-              {!canStart && (
+              {players.length === 1 && (
                 <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest animate-pulse">
-                  Waiting for more players to join...
+                  You can start solo or wait for friends to join
                 </p>
               )}
             </div>
