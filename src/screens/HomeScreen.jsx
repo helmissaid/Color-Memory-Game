@@ -37,25 +37,25 @@ const HomeScreen = ({ onCreateRoom, onJoinRoom }) => {
   const isRoomCodeValid = roomCode.length === 6;
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex flex-col items-center justify-center p-6 font-sans">
+    <div className="min-h-screen bg-white text-gray-900 flex flex-col items-center justify-center p-6 font-sans">
       <div className="w-full max-w-md space-y-12 animate-in fade-in duration-1000">
         
         {/* Header Section */}
         <div className="text-center space-y-4">
           <h1 className="text-5xl sm:text-7xl font-black tracking-tighter uppercase italic leading-none">
-            Color <span className="text-indigo-500">Memory</span>
+            Color <span className="text-indigo-600">Memory</span>
           </h1>
-          <p className="text-gray-500 text-[10px] sm:text-xs font-black uppercase tracking-[0.4em]">
+          <p className="text-gray-400 text-[10px] sm:text-xs font-black uppercase tracking-[0.4em]">
             How well can you remember colors?
           </p>
         </div>
 
         {/* Main Form Card */}
-        <div className="space-y-8 bg-white/5 p-8 rounded-[2.5rem] border border-white/10 backdrop-blur-2xl shadow-2xl">
+        <div className="space-y-8 bg-gray-50 p-8 rounded-[2.5rem] border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
           
           {/* Player Name Input */}
           <div className="space-y-3">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
               Your Identity
             </label>
             <input
@@ -64,7 +64,7 @@ const HomeScreen = ({ onCreateRoom, onJoinRoom }) => {
               maxLength={20}
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder:text-gray-700 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all font-bold text-lg"
+              className="w-full bg-white border border-gray-200 rounded-2xl px-6 py-4 text-gray-900 placeholder:text-gray-300 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all font-bold text-lg shadow-sm"
             />
           </div>
 
@@ -80,14 +80,14 @@ const HomeScreen = ({ onCreateRoom, onJoinRoom }) => {
 
             {/* Divider */}
             <div className="relative flex items-center py-4">
-              <div className="flex-grow border-t border-white/5"></div>
-              <span className="flex-shrink mx-4 text-[10px] font-black text-gray-700 uppercase tracking-widest">OR</span>
-              <div className="flex-grow border-t border-white/5"></div>
+              <div className="flex-grow border-t border-gray-100"></div>
+              <span className="flex-shrink mx-4 text-[10px] font-black text-gray-300 uppercase tracking-widest">OR</span>
+              <div className="flex-grow border-t border-gray-100"></div>
             </div>
 
             {/* Join Room Section */}
             <div className="space-y-3">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
                 Join with Code
               </label>
               <div className="flex gap-3">
@@ -97,12 +97,12 @@ const HomeScreen = ({ onCreateRoom, onJoinRoom }) => {
                   maxLength={6}
                   value={roomCode}
                   onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-                  className="flex-1 bg-black/40 border border-white/10 rounded-2xl px-4 py-4 text-white placeholder:text-gray-700 focus:outline-none focus:border-indigo-500/50 transition-all font-mono font-black text-center tracking-[0.4em] text-lg"
+                  className="flex-1 bg-white border border-gray-200 rounded-2xl px-4 py-4 text-gray-900 placeholder:text-gray-300 focus:outline-none focus:border-indigo-500/50 transition-all font-mono font-black text-center tracking-[0.4em] text-lg shadow-sm"
                 />
                 <button
                   disabled={!isNameValid || !isRoomCodeValid}
                   onClick={handleJoin}
-                  className="bg-white text-black hover:bg-gray-200 disabled:opacity-20 disabled:cursor-not-allowed font-black px-8 rounded-2xl transition-all uppercase tracking-widest text-sm active:scale-[0.98]"
+                  className="bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-20 disabled:cursor-not-allowed font-black px-8 rounded-2xl transition-all uppercase tracking-widest text-sm active:scale-[0.98]"
                 >
                   Join
                 </button>
@@ -113,7 +113,7 @@ const HomeScreen = ({ onCreateRoom, onJoinRoom }) => {
 
         {/* Footer Info */}
         <div className="text-center pt-4">
-          <p className="text-[9px] text-gray-700 font-black uppercase tracking-[0.3em] opacity-50">
+          <p className="text-[9px] text-gray-300 font-black uppercase tracking-[0.3em]">
             Real-time Multiplayer • CIEDE2000 Accuracy
           </p>
         </div>
